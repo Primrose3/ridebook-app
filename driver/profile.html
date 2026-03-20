@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideBook - Driver Profile</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .background {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e, #6a11cb);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Navbar ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 40px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .nav-back {
+      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .nav-back:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* ── Main ── */
+    .main {
+      padding: 40px;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    /* ── Glass Card ── */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Profile Header ── */
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .avatar-wrap {
+      position: relative;
+    }
+
+    .avatar {
+      width: 90px;
+      height: 90px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+    }
+
+    .avatar-badge {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 20px;
+      height: 20px;
+      background: #7fffb2;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.3);
+    }
+
+    .profile-name {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .profile-since {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-bottom: 8px;
+    }
+
+    .profile-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .badge-verified {
+      background: rgba(100, 220, 150, 0.2);
+      border: 1px solid rgba(100, 220, 150, 0.4);
+      color: #7fffb2;
+    }
+
+    .badge-top {
+      background: rgba(255, 215, 0, 0.2);
+      border: 1px solid rgba(255, 215, 0, 0.4);
+      color: #ffd700;
+    }
+
+    /* ── Stats Row ── */
+    .stats-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .stat-box {
+      flex: 1;
+      min-width: 100px;
+      text-align: center;
+      padding: 16px 10px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+    }
+
+    .stat-val {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .stat-lbl {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-top: 4px;
+    }
+
+    /* ── Info Fields ── */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+
+    .info-label {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-bottom: 3px;
+    }
+
+    .info-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .btn-edit {
+      padding: 6px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-edit:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    /* ── Vehicle Card ── */
+    .vehicle-box {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .vehicle-icon {
+      font-size: 3.5rem;
+    }
+
+    .vehicle-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .vehicle-detail {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 2px;
+    }
+
+    /* ── Reviews ── */
+    .review-item {
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .review-item:last-child { border-bottom: none; }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .reviewer-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .review-stars {
+      font-size: 0.85rem;
+      color: #ffd700;
+    }
+
+    .review-text {
+      font-size: 0.83rem;
+      color: rgba(255, 255, 255, 0.65);
+      line-height: 1.5;
+    }
+
+    .review-date {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 4px;
+    }
+
+    /* ── Save Button ── */
+    .btn-save {
+      width: 100%;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      border-radius: 14px;
+      color: #ffffff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-save:hover {
+      background: rgba(255, 255, 255, 0.28);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="../index.html" class="nav-logo">🚗 RideBook</a>
+    <a href="dashboard.html" class="nav-back">← Back to Dashboard</a>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Profile Header -->
+    <div class="glass-card">
+      <div class="profile-header">
+        <div class="avatar-wrap">
+          <div class="avatar">👨‍✈️</div>
+          <div class="avatar-badge"></div>
+        </div>
+        <div>
+          <div class="profile-name">Juan dela Cruz</div>
+          <div class="profile-since">Driver since January 2024</div>
+          <div class="profile-badges">
+            <span class="badge badge-verified">✅ Verified</span>
+            <span class="badge badge-top">⭐ Top Driver</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="glass-card">
+      <div class="card-title">Performance</div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-val">312</div>
+          <div class="stat-lbl">Total Rides</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">4.8</div>
+          <div class="stat-lbl">Rating</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">98%</div>
+          <div class="stat-lbl">Acceptance</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">₱42k</div>
+          <div class="stat-lbl">Total Earned</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal Info -->
+    <div class="glass-card">
+      <div class="card-title">Personal Information</div>
+      <div class="info-row">
+        <div>
+          <div class="info-label">Full Name</div>
+          <div class="info-value">Juan dela Cruz</div>
+        </div>
+        <button class="btn-edit">Edit</button>
+      </div>
+      <div class="info-row">
+        <div>
+          <div class="info-label">Phone Number</div>
+          <div class="info-value">+63 912 345 6789</div>
+        </div>
+        <button class="btn-edit">Edit</button>
+      </div>
+      <div class="info-row">
+        <div>
+          <div class="info-label">Email Address</div>
+          <div class="info-value">juan.delacruz@email.com</div>
+        </div>
+        <button class="btn-edit">Edit</button>
+      </div>
+      <div class="info-row">
+        <div>
+          <div class="info-label">Home Address</div>
+          <div class="info-value">Jaro, Iloilo City</div>
+        </div>
+        <button class="btn-edit">Edit</button>
+      </div>
+    </div>
+
+    <!-- Vehicle Info -->
+    <div class="glass-card">
+      <div class="card-title">Vehicle Information</div>
+      <div class="vehicle-box">
+        <div class="vehicle-icon">🚗</div>
+        <div>
+          <div class="vehicle-name">Toyota Vios 2021</div>
+          <div class="vehicle-detail">Plate: ABC 1234</div>
+          <div class="vehicle-detail">Color: White</div>
+          <div class="vehicle-detail">Type: Sedan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="glass-card">
+      <div class="card-title">Documents</div>
+      <div class="info-row">
+        <div>
+          <div class="info-label">Driver's License</div>
+          <div class="info-value">N01-23-456789</div>
+        </div>
+        <span style="font-size:0.78rem; color:#7fffb2;">✅ Verified</span>
+      </div>
+      <div class="info-row">
+        <div>
+          <div class="info-label">OR/CR</div>
+          <div class="info-value">Expires Dec 2026</div>
+        </div>
+        <span style="font-size:0.78rem; color:#7fffb2;">✅ Verified</span>
+      </div>
+      <div class="info-row">
+        <div>
+          <div class="info-label">Insurance</div>
+          <div class="info-value">Expires June 2026</div>
+        </div>
+        <span style="font-size:0.78rem; color:#ffd700;">⚠️ Expiring Soon</span>
+      </div>
+    </div>
+
+    <!-- Reviews -->
+    <div class="glass-card">
+      <div class="card-title">Recent Reviews</div>
+      <div class="review-item">
+        <div class="review-header">
+          <span class="reviewer-name">Wade R.</span>
+          <span class="review-stars">⭐⭐⭐⭐⭐</span>
+        </div>
+        <div class="review-text">Very smooth ride, driver was punctual and friendly!</div>
+        <div class="review-date">March 20, 2026</div>
+      </div>
+      <div class="review-item">
+        <div class="review-header">
+          <span class="reviewer-name">Maria S.</span>
+          <span class="review-stars">⭐⭐⭐⭐⭐</span>
+        </div>
+        <div class="review-text">Safe driver, clean car. Will book again!</div>
+        <div class="review-date">March 19, 2026</div>
+      </div>
+      <div class="review-item">
+        <div class="review-header">
+          <span class="reviewer-name">Pedro L.</span>
+          <span class="review-stars">⭐⭐⭐⭐</span>
+        </div>
+        <div class="review-text">Good ride overall, arrived on time.</div>
+        <div class="review-date">March 18, 2026</div>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <button class="btn-save"
+      onclick="alert('Profile saved! ✅')">
+      Save Changes
+    </button>
+
+  </div>
+
+</body>
+</html>
