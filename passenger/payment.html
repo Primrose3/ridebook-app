@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideBook - Payment</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .background {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #6a11cb, #fc6767, #2575fc, #f7971e);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Navbar ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 40px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .nav-back {
+      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .nav-back:hover { background: rgba(255, 255, 255, 0.28); }
+
+    /* ── Main ── */
+    .main {
+      padding: 40px;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .page-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.95rem;
+      margin-bottom: 30px;
+    }
+
+    /* ── Glass Card ── */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.13);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 18px;
+    }
+
+    /* ── Wallet Balance ── */
+    .wallet-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .wallet-balance {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .wallet-label {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+    }
+
+    .btn-topup {
+      padding: 12px 28px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50px;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-topup:hover {
+      background: rgba(255, 255, 255, 0.32);
+      transform: translateY(-2px);
+    }
+
+    /* ── Payment Methods ── */
+    .payment-methods {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .method-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .method-item:hover,
+    .method-item.active {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .method-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .method-icon { font-size: 1.8rem; }
+
+    .method-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .method-detail {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-top: 2px;
+    }
+
+    .method-radio {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .method-radio.selected::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      background: #ffffff;
+      border-radius: 50%;
+    }
+
+    /* ── Transaction History ── */
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .transaction-item:last-child { border-bottom: none; }
+
+    .transaction-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .transaction-icon { font-size: 1.6rem; }
+
+    .transaction-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .transaction-date {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-top: 2px;
+    }
+
+    .transaction-amount {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .amount-debit { color: #ffaaaa; }
+    .amount-credit { color: #7fffb2; }
+
+    /* ── Pay Button ── */
+    .btn-pay {
+      width: 100%;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1.5px solid rgba(255, 255, 255, 0.5);
+      border-radius: 14px;
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+      letter-spacing: 0.5px;
+      margin-top: 6px;
+    }
+
+    .btn-pay:hover {
+      background: rgba(255, 255, 255, 0.38);
+      box-shadow: 0 0 24px rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="../index.html" class="nav-logo">🚗 RideBook</a>
+    <a href="dashboard.html" class="nav-back">← Back to Dashboard</a>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+    <h1 class="page-title">Payment 💳</h1>
+    <p class="page-subtitle">Manage your wallet and payment methods</p>
+
+    <!-- Wallet Balance -->
+    <div class="glass-card">
+      <div class="card-title">💰 RideBook Wallet</div>
+      <div class="wallet-box">
+        <div>
+          <div class="wallet-balance">₱ 850.00</div>
+          <div class="wallet-label">Available Balance</div>
+        </div>
+        <button class="btn-topup">+ Top Up</button>
+      </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="glass-card">
+      <div class="card-title">💳 Payment Methods</div>
+      <div class="payment-methods">
+
+        <div class="method-item active">
+          <div class="method-left">
+            <div class="method-icon">👛</div>
+            <div>
+              <div class="method-name">RideBook Wallet</div>
+              <div class="method-detail">Balance: ₱850.00</div>
+            </div>
+          </div>
+          <div class="method-radio selected"></div>
+        </div>
+
+        <div class="method-item">
+          <div class="method-left">
+            <div class="method-icon">💵</div>
+            <div>
+              <div class="method-name">Cash</div>
+              <div class="method-detail">Pay driver directly</div>
+            </div>
+          </div>
+          <div class="method-radio"></div>
+        </div>
+
+        <div class="method-item">
+          <div class="method-left">
+            <div class="method-icon">📱</div>
+            <div>
+              <div class="method-name">GCash</div>
+              <div class="method-detail">Linked: 09XX XXX XXXX</div>
+            </div>
+          </div>
+          <div class="method-radio"></div>
+        </div>
+
+        <div class="method-item">
+          <div class="method-left">
+            <div class="method-icon">🏦</div>
+            <div>
+              <div class="method-name">Maya</div>
+              <div class="method-detail">Linked: 09XX XXX XXXX</div>
+            </div>
+          </div>
+          <div class="method-radio"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Fare Summary -->
+    <div class="glass-card">
+      <div class="card-title">🧾 Fare Summary</div>
+      <div class="transaction-item">
+        <div class="transaction-left">
+          <div class="transaction-icon">📍</div>
+          <div>
+            <div class="transaction-name">SM City → Iloilo Airport</div>
+            <div class="transaction-date">March 20, 2026 · 10:30 AM</div>
+          </div>
+        </div>
+        <div class="transaction-amount amount-debit">- ₱180</div>
+      </div>
+      <div class="transaction-item">
+        <div class="transaction-left">
+          <div class="transaction-icon">⚙️</div>
+          <div>
+            <div class="transaction-name">Service Fee</div>
+            <div class="transaction-date">March 20, 2026</div>
+          </div>
+        </div>
+        <div class="transaction-amount amount-debit">- ₱10</div>
+      </div>
+      <div class="transaction-item">
+        <div class="transaction-left">
+          <div class="transaction-icon">💰</div>
+          <div>
+            <div class="transaction-name">Wallet Top Up</div>
+            <div class="transaction-date">March 19, 2026</div>
+          </div>
+        </div>
+        <div class="transaction-amount amount-credit">+ ₱500</div>
+      </div>
+    </div>
+
+    <!-- Pay Button -->
+    <button class="btn-pay"
+      onclick="alert('Payment of ₱102.00 confirmed! ✅')">
+      Pay ₱102.00 →
+    </button>
+
+  </div>
+
+</body>
+</html>
