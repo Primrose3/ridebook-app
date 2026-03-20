@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideBook - Track Ride</title>
+
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .background {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #6a11cb, #fc6767, #2575fc, #f7971e);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Navbar ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 40px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+      z-index: 1000;
+    }
+
+    .nav-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .nav-back {
+      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .nav-back:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    /* ── Layout ── */
+    .track-layout {
+      display: flex;
+      height: calc(100vh - 65px);
+    }
+
+    /* ── Map ── */
+    #map {
+      flex: 1;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* ── Side Panel ── */
+    .side-panel {
+      width: 340px;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(255, 255, 255, 0.15);
+      z-index: 2;
+    }
+
+    /* ── Glass Card ── */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.13);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Status Badge ── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(100, 220, 150, 0.2);
+      border: 1px solid rgba(100, 220, 150, 0.4);
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #7fffb2;
+      margin-bottom: 14px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #7fffb2;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    /* ── Driver Info ── */
+    .driver-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .driver-avatar {
+      font-size: 2.8rem;
+    }
+
+    .driver-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .driver-detail {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 2px;
+    }
+
+    .driver-rating {
+      font-size: 0.85rem;
+      color: #ffd700;
+      margin-top: 4px;
+    }
+
+    /* ── Route Info ── */
+    .route-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .route-item:last-child {
+      border-bottom: none;
+    }
+
+    .route-dot {
+      font-size: 1.1rem;
+      margin-top: 2px;
+    }
+
+    .route-label {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.55);
+    }
+
+    .route-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* ── ETA ── */
+    .eta-box {
+      text-align: center;
+    }
+
+    .eta-number {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+    }
+
+    .eta-label {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+    }
+
+    /* ── Cancel Button ── */
+    .btn-cancel {
+      width: 100%;
+      padding: 13px;
+      background: rgba(255, 100, 100, 0.2);
+      border: 1.5px solid rgba(255, 100, 100, 0.4);
+      border-radius: 12px;
+      color: #ffaaaa;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-cancel:hover {
+      background: rgba(255, 100, 100, 0.35);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="../index.html" class="nav-logo">🚗 RideBook</a>
+    <a href="book-ride.html" class="nav-back">← Back</a>
+  </nav>
+
+  <!-- Track Layout -->
+  <div class="track-layout">
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Side Panel -->
+    <div class="side-panel">
+
+      <!-- Status -->
+      <div class="glass-card">
+        <div class="status-badge">
+          <div class="status-dot"></div>
+          Driver On The Way
+        </div>
+        <div class="eta-box">
+          <div class="eta-number">7</div>
+          <div class="eta-label">minutes away</div>
+        </div>
+      </div>
+
+      <!-- Driver Info -->
+      <div class="glass-card">
+        <div class="card-title">Your Driver</div>
+        <div class="driver-info">
+          <div class="driver-avatar">👨‍✈️</div>
+          <div>
+            <div class="driver-name">Juan dela Cruz</div>
+            <div class="driver-detail">Toyota Vios · ABC 1234</div>
+            <div class="driver-rating">⭐ 4.8 · 312 rides</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Route -->
+      <div class="glass-card">
+        <div class="card-title">Your Route</div>
+        <div class="route-item">
+          <div class="route-dot">🟢</div>
+          <div>
+            <div class="route-label">Pickup</div>
+            <div class="route-value">SM City Iloilo</div>
+          </div>
+        </div>
+        <div class="route-item">
+          <div class="route-dot">🔴</div>
+          <div>
+            <div class="route-label">Drop-off</div>
+            <div class="route-value">Iloilo Airport</div>
+          </div>
+        </div>
+        <div class="route-item">
+          <div class="route-dot">📏</div>
+          <div>
+            <div class="route-label">Distance</div>
+            <div class="route-value">5.2 km · est. 15 mins</div>
+          </div>
+        </div>
+        <div class="route-item">
+          <div class="route-dot">💳</div>
+          <div>
+            <div class="route-label">Fare</div>
+            <div class="route-value">₱102.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cancel -->
+      <button class="btn-cancel"
+        onclick="window.location.href='dashboard.html'">
+        ✕ Cancel Ride
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Map centered on Iloilo City
+    const map = L.map('map').setView([10.7202, 122.5621], 13);
+
+    // Map tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Pickup marker - SM City Iloilo
+    const pickup = L.marker([10.7157, 122.5496])
+      .addTo(map)
+      .bindPopup('📍 Pickup: SM City Iloilo')
+      .openPopup();
+
+    // Dropoff marker - Iloilo Airport
+    const dropoff = L.marker([10.7132, 122.4953])
+      .addTo(map)
+      .bindPopup('🔴 Drop-off: Iloilo Airport');
+
+    // Driver marker
+    const driverIcon = L.divIcon({
+      html: '🚗',
+      className: '',
+      iconSize: [30, 30]
+    });
+
+    const driver = L.marker([10.7180, 122.5200], { icon: driverIcon })
+      .addTo(map)
+      .bindPopup('🚗 Your Driver');
+
+    // Draw route line
+    const route = L.polyline([
+      [10.7157, 122.5496],
+      [10.7180, 122.5200],
+      [10.7132, 122.4953]
+    ], {
+      color: 'white',
+      weight: 4,
+      opacity: 0.7,
+      dashArray: '10, 10'
+    }).addTo(map);
+
+    map.fitBounds(route.getBounds(), { padding: [40, 40] });
+  </script>
+
+</body>
+</html>
