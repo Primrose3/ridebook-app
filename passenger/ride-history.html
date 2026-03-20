@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideBook - Ride History</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .background {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #6a11cb, #fc6767, #2575fc, #f7971e);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Navbar ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 40px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .nav-back {
+      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .nav-back:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    /* ── Main ── */
+    .main {
+      padding: 40px;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .page-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.95rem;
+      margin-bottom: 30px;
+    }
+
+    /* ── Filter Tabs ── */
+    .filter-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 8px 22px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .tab:hover,
+    .tab.active {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+      color: #ffffff;
+    }
+
+    /* ── Summary Stats ── */
+    .stats-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 130px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .stat-value { font-size: 1.5rem; font-weight: 800; }
+    .stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+    /* ── Ride Cards ── */
+    .ride-card {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      transition: transform 0.3s;
+    }
+
+    .ride-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .ride-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .ride-date {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-bottom: 4px;
+    }
+
+    .ride-route {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .ride-status {
+      font-size: 0.78rem;
+      padding: 5px 14px;
+      border-radius: 50px;
+      font-weight: 600;
+    }
+
+    .status-completed {
+      background: rgba(100, 220, 150, 0.2);
+      color: #7fffb2;
+      border: 1px solid rgba(100, 220, 150, 0.3);
+    }
+
+    .status-cancelled {
+      background: rgba(255, 100, 100, 0.2);
+      color: #ffaaaa;
+      border: 1px solid rgba(255, 100, 100, 0.3);
+    }
+
+    .status-ongoing {
+      background: rgba(100, 180, 255, 0.2);
+      color: #aad4ff;
+      border: 1px solid rgba(100, 180, 255, 0.3);
+    }
+
+    .ride-details {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .ride-detail-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-icon { font-size: 1rem; }
+
+    .detail-text {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .detail-text strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    /* ── View Button ── */
+    .btn-view {
+      margin-top: 14px;
+      padding: 9px 22px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50px;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.83rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-view:hover {
+      background: rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="../index.html" class="nav-logo">🚗 RideBook</a>
+    <a href="dashboard.html" class="nav-back">← Back to Dashboard</a>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+    <h1 class="page-title">Ride History 🕓</h1>
+    <p class="page-subtitle">All your past and ongoing rides</p>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <div class="tab active">All</div>
+      <div class="tab">Completed</div>
+      <div class="tab">Cancelled</div>
+      <div class="tab">Ongoing</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">🚗</div>
+        <div class="stat-value">24</div>
+        <div class="stat-label">Total Rides</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value">21</div>
+        <div class="stat-label">Completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">❌</div>
+        <div class="stat-value">3</div>
+        <div class="stat-label">Cancelled</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💳</div>
+        <div class="stat-value">₱1,280</div>
+        <div class="stat-label">Total Spent</div>
+      </div>
+    </div>
+
+    <!-- Ride Cards -->
+    <div class="ride-card">
+      <div class="ride-header">
+        <div>
+          <div class="ride-date">March 20, 2026 · 10:30 AM</div>
+          <div class="ride-route">SM City Iloilo → Iloilo Airport</div>
+        </div>
+        <span class="ride-status status-completed">✅ Completed</span>
+      </div>
+      <div class="ride-details">
+        <div class="ride-detail-item">
+          <span class="detail-icon">🚗</span>
+          <span class="detail-text">Driver: <strong>Juan dela Cruz</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">📏</span>
+          <span class="detail-text">Distance: <strong>5.2 km</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">💳</span>
+          <span class="detail-text">Fare: <strong>₱180</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">⭐</span>
+          <span class="detail-text">Rating: <strong>5.0</strong></span>
+        </div>
+      </div>
+      <button class="btn-view">View Details →</button>
+    </div>
+
+    <div class="ride-card">
+      <div class="ride-header">
+        <div>
+          <div class="ride-date">March 19, 2026 · 3:15 PM</div>
+          <div class="ride-route">Jaro → Molo District</div>
+        </div>
+        <span class="ride-status status-completed">✅ Completed</span>
+      </div>
+      <div class="ride-details">
+        <div class="ride-detail-item">
+          <span class="detail-icon">🚗</span>
+          <span class="detail-text">Driver: <strong>Maria Santos</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">📏</span>
+          <span class="detail-text">Distance: <strong>3.1 km</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">💳</span>
+          <span class="detail-text">Fare: <strong>₱95</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">⭐</span>
+          <span class="detail-text">Rating: <strong>4.8</strong></span>
+        </div>
+      </div>
+      <button class="btn-view">View Details →</button>
+    </div>
+
+    <div class="ride-card">
+      <div class="ride-header">
+        <div>
+          <div class="ride-date">March 18, 2026 · 7:45 PM</div>
+          <div class="ride-route">Megaworld → Festive Walk</div>
+        </div>
+        <span class="ride-status status-cancelled">❌ Cancelled</span>
+      </div>
+      <div class="ride-details">
+        <div class="ride-detail-item">
+          <span class="detail-icon">🚗</span>
+          <span class="detail-text">Driver: <strong>Not assigned</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">📏</span>
+          <span class="detail-text">Distance: <strong>0.8 km</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">💳</span>
+          <span class="detail-text">Fare: <strong>₱0</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">❗</span>
+          <span class="detail-text">Reason: <strong>No drivers available</strong></span>
+        </div>
+      </div>
+      <button class="btn-view">View Details →</button>
+    </div>
+
+    <div class="ride-card">
+      <div class="ride-header">
+        <div>
+          <div class="ride-date">March 20, 2026 · 11:45 PM</div>
+          <div class="ride-route">Smallville → Robinson's Place</div>
+        </div>
+        <span class="ride-status status-ongoing">🔵 Ongoing</span>
+      </div>
+      <div class="ride-details">
+        <div class="ride-detail-item">
+          <span class="detail-icon">🚗</span>
+          <span class="detail-text">Driver: <strong>Pedro Reyes</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">📏</span>
+          <span class="detail-text">Distance: <strong>2.4 km</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">💳</span>
+          <span class="detail-text">Est. Fare: <strong>₱85</strong></span>
+        </div>
+        <div class="ride-detail-item">
+          <span class="detail-icon">📍</span>
+          <span class="detail-text">ETA: <strong>5 mins</strong></span>
+        </div>
+      </div>
+      <button class="btn-view"
+        onclick="window.location.href='track-ride.html'">
+        Track Ride →
+      </button>
+    </div>
+
+  </div>
+
+</body>
+</html>
