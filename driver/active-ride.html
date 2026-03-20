@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideBook - Active Ride</title>
+
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .background {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e, #6a11cb);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Navbar ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 40px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      position: relative;
+      z-index: 1000;
+    }
+
+    .nav-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .nav-back {
+      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .nav-back:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* ── Layout ── */
+    .track-layout {
+      display: flex;
+      height: calc(100vh - 65px);
+    }
+
+    /* ── Map ── */
+    #map {
+      flex: 1;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* ── Side Panel ── */
+    .side-panel {
+      width: 340px;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
+      z-index: 2;
+    }
+
+    /* ── Glass Card ── */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.55);
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Status Badge ── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(100, 220, 150, 0.15);
+      border: 1px solid rgba(100, 220, 150, 0.35);
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #7fffb2;
+      margin-bottom: 14px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #7fffb2;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    /* ── Passenger Info ── */
+    .passenger-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .passenger-avatar { font-size: 2.8rem; }
+
+    .passenger-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .passenger-detail {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-top: 2px;
+    }
+
+    .passenger-rating {
+      font-size: 0.85rem;
+      color: #ffd700;
+      margin-top: 4px;
+    }
+
+    /* ── Route Info ── */
+    .route-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .route-item:last-child { border-bottom: none; }
+    .route-dot { font-size: 1.1rem; margin-top: 2px; }
+
+    .route-label {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .route-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* ── Progress Steps ── */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 0;
+      position: relative;
+    }
+
+    .step-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .step.done .step-circle {
+      background: rgba(100, 220, 150, 0.25);
+      border-color: rgba(100, 220, 150, 0.5);
+      color: #7fffb2;
+    }
+
+    .step.active .step-circle {
+      background: rgba(255, 215, 0, 0.2);
+      border-color: rgba(255, 215, 0, 0.5);
+      color: #ffd700;
+    }
+
+    .step-text {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .step.done .step-text { color: #7fffb2; }
+    .step.active .step-text { color: #ffd700; }
+
+    /* ── Fare Box ── */
+    .fare-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .fare-row:last-child { border-bottom: none; }
+
+    .fare-label {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .fare-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .fare-total .fare-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .fare-total .fare-value {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #7fffb2;
+    }
+
+    /* ── Action Buttons ── */
+    .btn-arrived {
+      width: 100%;
+      padding: 14px;
+      background: rgba(100, 220, 150, 0.2);
+      border: 1.5px solid rgba(100, 220, 150, 0.4);
+      border-radius: 12px;
+      color: #7fffb2;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 10px;
+    }
+
+    .btn-arrived:hover {
+      background: rgba(100, 220, 150, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .btn-complete {
+      width: 100%;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 10px;
+    }
+
+    .btn-complete:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(-2px);
+    }
+
+    .btn-cancel {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 100, 100, 0.12);
+      border: 1.5px solid rgba(255, 100, 100, 0.3);
+      border-radius: 12px;
+      color: #ffaaaa;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-cancel:hover {
+      background: rgba(255, 100, 100, 0.25);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="../index.html" class="nav-logo">🚗 RideBook</a>
+    <a href="dashboard.html" class="nav-back">← Dashboard</a>
+  </nav>
+
+  <!-- Layout -->
+  <div class="track-layout">
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Side Panel -->
+    <div class="side-panel">
+
+      <!-- Status -->
+      <div class="glass-card">
+        <div class="status-badge">
+          <div class="status-dot"></div>
+          Ride In Progress
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="steps">
+          <div class="step done">
+            <div class="step-circle">✓</div>
+            <div class="step-text">Ride Accepted</div>
+          </div>
+          <div class="step done">
+            <div class="step-circle">✓</div>
+            <div class="step-text">Heading to Pickup</div>
+          </div>
+          <div class="step active">
+            <div class="step-circle">→</div>
+            <div class="step-text">Passenger On Board</div>
+          </div>
+          <div class="step">
+            <div class="step-circle">4</div>
+            <div class="step-text">Arrived at Destination</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Passenger Info -->
+      <div class="glass-card">
+        <div class="card-title">Passenger</div>
+        <div class="passenger-info">
+          <div class="passenger-avatar">👤</div>
+          <div>
+            <div class="passenger-name">Wade R.</div>
+            <div class="passenger-detail">Regular Passenger</div>
+            <div class="passenger-rating">⭐ 4.9 · 24 rides</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Route -->
+      <div class="glass-card">
+        <div class="card-title">Route</div>
+        <div class="route-item">
+          <div class="route-dot">🟢</div>
+          <div>
+            <div class="route-label">Pickup</div>
+            <div class="route-value">SM City Iloilo</div>
+          </div>
+        </div>
+        <div class="route-item">
+          <div class="route-dot">🔴</div>
+          <div>
+            <div class="route-label">Drop-off</div>
+            <div class="route-value">Iloilo Airport</div>
+          </div>
+        </div>
+        <div class="route-item">
+          <div class="route-dot">📏</div>
+          <div>
+            <div class="route-label">Distance</div>
+            <div class="route-value">5.2 km · est. 15 mins</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fare -->
+      <div class="glass-card">
+        <div class="card-title">Fare Breakdown</div>
+        <div class="fare-row">
+          <span class="fare-label">Base Fare</span>
+          <span class="fare-value">₱40.00</span>
+        </div>
+        <div class="fare-row">
+          <span class="fare-label">Distance (5.2 km)</span>
+          <span class="fare-value">₱52.00</span>
+        </div>
+        <div class="fare-row">
+          <span class="fare-label">Service Fee</span>
+          <span class="fare-value">₱10.00</span>
+        </div>
+        <div class="fare-row fare-total">
+          <span class="fare-label">Your Earnings</span>
+          <span class="fare-value">₱170.00</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <button class="btn-arrived"
+        onclick="alert('Marked as arrived at pickup! ✅')">
+        📍 Arrived at Pickup
+      </button>
+      <button class="btn-complete"
+        onclick="window.location.href='dashboard.html'">
+        ✅ Complete Ride
+      </button>
+      <button class="btn-cancel"
+        onclick="window.location.href='dashboard.html'">
+        ✕ Cancel Ride
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([10.7202, 122.5621], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Pickup
+    L.marker([10.7157, 122.5496])
+      .addTo(map)
+      .bindPopup('🟢 Pickup: SM City Iloilo');
+
+    // Dropoff
+    L.marker([10.7132, 122.4953])
+      .addTo(map)
+      .bindPopup('🔴 Drop-off: Iloilo Airport');
+
+    // Driver position
+    const driverIcon = L.divIcon({
+      html: '🚗',
+      className: '',
+      iconSize: [30, 30]
+    });
+
+    L.marker([10.7157, 122.5496], { icon: driverIcon })
+      .addTo(map)
+      .bindPopup('👨‍✈️ You are here')
+      .openPopup();
+
+    // Route line
+    const route = L.polyline([
+      [10.7157, 122.5496],
+      [10.7180, 122.5200],
+      [10.7132, 122.4953]
+    ], {
+      color: '#7fffb2',
+      weight: 4,
+      opacity: 0.8,
+      dashArray: '10, 8'
+    }).addTo(map);
+
+    map.fitBounds(route.getBounds(), { padding: [40, 40] });
+  </script>
+
+</body>
+</html>
