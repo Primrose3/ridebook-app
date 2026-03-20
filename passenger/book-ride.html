@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideBook - Book a Ride</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .background {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #6a11cb, #fc6767, #2575fc, #f7971e);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Navbar ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 40px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .nav-back {
+      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .nav-back:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    /* ── Main ── */
+    .main {
+      padding: 40px;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .page-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.95rem;
+      margin-bottom: 30px;
+    }
+
+    /* ── Glass Card ── */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.13);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* ── Input Fields ── */
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 8px;
+    }
+
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s;
+      appearance: none;
+    }
+
+    .input-group input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      border-color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.22);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+    }
+
+    .input-group select option {
+      background: #2575fc;
+      color: #ffffff;
+    }
+
+    /* ── Ride Type Selector ── */
+    .ride-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .ride-type {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      border-radius: 14px;
+      padding: 18px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .ride-type:hover,
+    .ride-type.active {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .ride-type-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .ride-type-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .ride-type-price {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.65);
+      margin-top: 4px;
+    }
+
+    /* ── Fare Estimate ── */
+    .fare-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .fare-box:last-child {
+      border-bottom: none;
+    }
+
+    .fare-label {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .fare-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .fare-total .fare-label {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .fare-total .fare-value {
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+
+    /* ── Book Button ── */
+    .btn-confirm {
+      width: 100%;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1.5px solid rgba(255, 255, 255, 0.5);
+      border-radius: 14px;
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-confirm:hover {
+      background: rgba(255, 255, 255, 0.38);
+      box-shadow: 0 0 24px rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="../index.html" class="nav-logo">🚗 RideBook</a>
+    <a href="dashboard.html" class="nav-back">← Back to Dashboard</a>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+    <h1 class="page-title">Book a Ride 🚕</h1>
+    <p class="page-subtitle">Enter your pickup and drop-off location</p>
+
+    <!-- Location Inputs -->
+    <div class="glass-card">
+      <p class="card-title">📍 Your Route</p>
+
+      <div class="input-group">
+        <label>Pickup Location</label>
+        <input type="text" placeholder="Enter pickup address" />
+      </div>
+
+      <div class="input-group">
+        <label>Drop-off Location</label>
+        <input type="text" placeholder="Enter destination" />
+      </div>
+
+      <div class="input-group">
+        <label>Ride Date & Time</label>
+        <input type="datetime-local" />
+      </div>
+
+      <div class="input-group">
+        <label>Number of Passengers</label>
+        <select>
+          <option>1 Passenger</option>
+          <option>2 Passengers</option>
+          <option>3 Passengers</option>
+          <option>4 Passengers</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Ride Type -->
+    <div class="glass-card">
+      <p class="card-title">🚗 Select Ride Type</p>
+      <div class="ride-types">
+        <div class="ride-type active">
+          <div class="ride-type-icon">🛵</div>
+          <div class="ride-type-name">Moto</div>
+          <div class="ride-type-price">From ₱40</div>
+        </div>
+        <div class="ride-type">
+          <div class="ride-type-icon">🚗</div>
+          <div class="ride-type-name">Standard</div>
+          <div class="ride-type-price">From ₱80</div>
+        </div>
+        <div class="ride-type">
+          <div class="ride-type-icon">🚙</div>
+          <div class="ride-type-name">SUV</div>
+          <div class="ride-type-price">From ₱150</div>
+        </div>
+        <div class="ride-type">
+          <div class="ride-type-icon">🚐</div>
+          <div class="ride-type-name">Van</div>
+          <div class="ride-type-price">From ₱220</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fare Estimate -->
+    <div class="glass-card">
+      <p class="card-title">💳 Fare Estimate</p>
+      <div class="fare-box">
+        <span class="fare-label">Base Fare</span>
+        <span class="fare-value">₱40.00</span>
+      </div>
+      <div class="fare-box">
+        <span class="fare-label">Distance (est. 5.2 km)</span>
+        <span class="fare-value">₱52.00</span>
+      </div>
+      <div class="fare-box">
+        <span class="fare-label">Service Fee</span>
+        <span class="fare-value">₱10.00</span>
+      </div>
+      <div class="fare-box fare-total">
+        <span class="fare-label">Total</span>
+        <span class="fare-value">₱102.00</span>
+      </div>
+    </div>
+
+    <!-- Confirm Button -->
+    <button class="btn-confirm" onclick="window.location.href='track-ride.html'">
+      Confirm Booking →
+    </button>
+
+  </div>
+
+</body>
+</html>
