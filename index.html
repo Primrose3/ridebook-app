@@ -1,11 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <RideBook App>Document</RideBook App>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideBook - Your Ride, Your Way</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: #ffffff;
+    }
+
+    /* ── Animated Background ── */
+    .background {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #6a11cb, #fc6767, #2575fc, #f7971e);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Navbar ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 60px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: #ffffff;
+    }
+
+    .nav-btn {
+      padding: 10px 24px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50px;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: translateY(-2px);
+    }
+
+    /* ── Hero Section ── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 100px 20px;
+      min-height: 85vh;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      line-height: 1.2;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.8);
+      max-width: 550px;
+      margin-bottom: 40px;
+      line-height: 1.7;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      padding: 16px 40px;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1.5px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 700;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+      background: rgba(255, 255, 255, 0.38);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
+      transform: translateY(-3px);
+    }
+
+    .btn-secondary {
+      padding: 16px 40px;
+      background: transparent;
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50px;
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-3px);
+    }
+
+    /* ── Features Section ── */
+    .features {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      padding: 60px 40px;
+      flex-wrap: wrap;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 36px 28px;
+      width: 260px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+
+    .feature-card p {
+      font-size: 0.88rem;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.6;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.85rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
 </head>
 <body>
-    <h1>RideBook App - Coming Soon</h1>
+
+  <div class="background"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="index.html" class="nav-logo">🚗 RideBook</a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="login.html">Login</a></li>
+    </ul>
+    <a href="login.html" class="nav-btn">Get Started</a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Your Ride,<br/>Your Way 🚀</h1>
+    <p>Book fast, safe, and affordable rides in just a few taps. RideBook connects passengers and drivers seamlessly.</p>
+    <div class="hero-buttons">
+      <a href="passenger/dashboard.html" class="btn-primary">Book a Ride</a>
+      <a href="driver/dashboard.html" class="btn-secondary">Drive with Us</a>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Fast Booking</h3>
+      <p>Book your ride in seconds. No waiting, no hassle — just tap and go.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📍</div>
+      <h3>Live Tracking</h3>
+      <p>Track your driver in real-time on the map from pickup to destination.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💳</div>
+      <h3>Easy Payment</h3>
+      <p>Pay securely with cash or card. Your transaction history is always saved.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⭐</div>
+      <h3>Trusted Drivers</h3>
+      <p>All drivers are verified and rated by passengers for your safety.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2026 RideBook. All rights reserved.</p>
+  </footer>
+
 </body>
 </html>
