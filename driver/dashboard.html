@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RideBook - Driver Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .background {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e, #6a11cb);
+      background-size: 400% 400%;
+      animation: gradientShift 8s ease infinite;
+      z-index: -1;
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ── Navbar ── */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 40px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .nav-badge {
+      padding: 5px 14px;
+      background: rgba(100, 220, 150, 0.2);
+      border: 1px solid rgba(100, 220, 150, 0.4);
+      border-radius: 50px;
+      color: #7fffb2;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .nav-logout {
+      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .nav-logout:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* ── Main ── */
+    .main {
+      padding: 40px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ── Glass Card ── */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 22px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Online Toggle ── */
+    .online-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .online-info h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .online-info p {
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 0.9rem;
+    }
+
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toggle-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .toggle {
+      width: 56px;
+      height: 28px;
+      background: rgba(100, 220, 150, 0.4);
+      border-radius: 50px;
+      position: relative;
+      cursor: pointer;
+      border: 1.5px solid rgba(100, 220, 150, 0.6);
+      transition: all 0.3s;
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #ffffff;
+      border-radius: 50%;
+      top: 3px;
+      right: 4px;
+      transition: all 0.3s;
+    }
+
+    /* ── Stats Row ── */
+    .stats-row {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 140px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      border-radius: 16px;
+      padding: 22px;
+      text-align: center;
+    }
+
+    .stat-icon { font-size: 1.8rem; margin-bottom: 8px; }
+    .stat-value { font-size: 1.6rem; font-weight: 800; }
+    .stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.55); margin-top: 4px; }
+
+    /* ── Incoming Ride Request ── */
+    .ride-request {
+      background: rgba(100, 220, 150, 0.08);
+      border: 1.5px solid rgba(100, 220, 150, 0.3);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 22px;
+    }
+
+    .request-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .request-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #7fffb2;
+    }
+
+    .request-timer {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #ffd700;
+    }
+
+    .request-details {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .request-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .request-icon { font-size: 1.1rem; }
+
+    .request-text {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .request-text strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .request-buttons {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-accept {
+      flex: 1;
+      padding: 14px;
+      background: rgba(100, 220, 150, 0.25);
+      border: 1.5px solid rgba(100, 220, 150, 0.5);
+      border-radius: 12px;
+      color: #7fffb2;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-accept:hover {
+      background: rgba(100, 220, 150, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-decline {
+      flex: 1;
+      padding: 14px;
+      background: rgba(255, 100, 100, 0.15);
+      border: 1.5px solid rgba(255, 100, 100, 0.35);
+      border-radius: 12px;
+      color: #ffaaaa;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-decline:hover {
+      background: rgba(255, 100, 100, 0.28);
+      transform: translateY(-2px);
+    }
+
+    /* ── Quick Actions ── */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .action-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      border-radius: 16px;
+      padding: 24px 16px;
+      text-align: center;
+      text-decoration: none;
+      color: #ffffff;
+      transition: all 0.3s;
+    }
+
+    .action-card:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: translateY(-4px);
+    }
+
+    .action-icon { font-size: 2rem; margin-bottom: 10px; }
+    .action-label { font-size: 0.88rem; font-weight: 600; }
+
+    /* ── Recent Rides ── */
+    .ride-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .ride-row:last-child { border-bottom: none; }
+
+    .ride-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ride-emoji { font-size: 1.5rem; }
+
+    .ride-route {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .ride-time {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+    }
+
+    .ride-earn {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #7fffb2;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background"></div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="../index.html" class="nav-logo">🚗 RideBook</a>
+    <div class="nav-right">
+      <span class="nav-badge">🟢 Online</span>
+      <span style="color:rgba(255,255,255,0.7); font-size:0.9rem;">👨‍✈️ Juan</span>
+      <a href="../login.html" class="nav-logout">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Online Toggle -->
+    <div class="glass-card">
+      <div class="online-banner">
+        <div class="online-info">
+          <h2>Good evening, Juan 👋</h2>
+          <p>You are currently <strong style="color:#7fffb2;">Online</strong> and accepting rides</p>
+        </div>
+        <div class="toggle-wrap">
+          <span class="toggle-label">Go Offline</span>
+          <div class="toggle"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">🚗</div>
+        <div class="stat-value">8</div>
+        <div class="stat-label">Rides Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">₱960</div>
+        <div class="stat-label">Earned Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-value">4.8</div>
+        <div class="stat-label">Your Rating</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-value">6.2h</div>
+        <div class="stat-label">Online Hours</div>
+      </div>
+    </div>
+
+    <!-- Incoming Ride Request -->
+    <div class="ride-request">
+      <div class="request-header">
+        <span class="request-title">🔔 Incoming Ride Request!</span>
+        <span class="request-timer">⏳ 15s</span>
+      </div>
+      <div class="request-details">
+        <div class="request-row">
+          <span class="request-icon">👤</span>
+          <span class="request-text">Passenger: <strong>Wade R.</strong></span>
+        </div>
+        <div class="request-row">
+          <span class="request-icon">🟢</span>
+          <span class="request-text">Pickup: <strong>SM City Iloilo</strong></span>
+        </div>
+        <div class="request-row">
+          <span class="request-icon">🔴</span>
+          <span class="request-text">Drop-off: <strong>Iloilo Airport</strong></span>
+        </div>
+        <div class="request-row">
+          <span class="request-icon">📏</span>
+          <span class="request-text">Distance: <strong>5.2 km · est. 15 mins</strong></span>
+        </div>
+        <div class="request-row">
+          <span class="request-icon">💳</span>
+          <span class="request-text">Fare: <strong>₱180.00</strong></span>
+        </div>
+      </div>
+      <div class="request-buttons">
+        <button class="btn-accept"
+          onclick="window.location.href='active-ride.html'">
+          ✅ Accept Ride
+        </button>
+        <button class="btn-decline"
+          onclick="alert('Ride declined.')">
+          ✕ Decline
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <p style="font-size:1rem; font-weight:700; margin-bottom:14px;
+      color:rgba(255,255,255,0.85);">Quick Actions</p>
+    <div class="actions-grid">
+      <a href="active-ride.html" class="action-card">
+        <div class="action-icon">🗺️</div>
+        <div class="action-label">Active Ride</div>
+      </a>
+      <a href="profile.html" class="action-card">
+        <div class="action-icon">👤</div>
+        <div class="action-label">My Profile</div>
+      </a>
+      <a href="../passenger/ride-history.html" class="action-card">
+        <div class="action-icon">🕓</div>
+        <div class="action-label">Ride History</div>
+      </a>
+      <a href="../passenger/payment.html" class="action-card">
+        <div class="action-icon">💰</div>
+        <div class="action-label">Earnings</div>
+      </a>
+    </div>
+
+    <!-- Recent Rides -->
+    <div class="glass-card">
+      <div class="card-title">Recent Rides</div>
+      <div class="ride-row">
+        <div class="ride-left">
+          <div class="ride-emoji">🚗</div>
+          <div>
+            <div class="ride-route">SM City → Iloilo Airport</div>
+            <div class="ride-time">Today · 10:30 AM · 5.2 km</div>
+          </div>
+        </div>
+        <div class="ride-earn">+ ₱180</div>
+      </div>
+      <div class="ride-row">
+        <div class="ride-left">
+          <div class="ride-emoji">🚗</div>
+          <div>
+            <div class="ride-route">Jaro → Molo District</div>
+            <div class="ride-time">Today · 3:15 PM · 3.1 km</div>
+          </div>
+        </div>
+        <div class="ride-earn">+ ₱95</div>
+      </div>
+      <div class="ride-row">
+        <div class="ride-left">
+          <div class="ride-emoji">🚗</div>
+          <div>
+            <div class="ride-route">Megaworld → Festive Walk</div>
+            <div class="ride-time">Today · 7:45 PM · 0.8 km</div>
+          </div>
+        </div>
+        <div class="ride-earn">+ ₱60</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
